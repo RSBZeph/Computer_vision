@@ -10,13 +10,20 @@ main_corners = []
 def click_event(event, x, y, flags, params):
     if event == cv.EVENT_LBUTTONDOWN:
         main_corners.append((x, y))
+        print((x,y))
 
 def make_grid():
     corners_grid = []
-    c1_c2 = main_corners[0] - main_corners[1]
-    c2_c3 = main_corners[1] - main_corners[2]
-    c3_c4 = main_corners[2] - main_corners[3]
+    c1_c2 = (main_corners[0][0] - main_corners[1][0], main_corners[0][1] - main_corners[1][1])
+    c2_c3 = (main_corners[1][0] - main_corners[2][0], main_corners[1][1] - main_corners[2][1])
+    c3_c4 = (main_corners[2][0] - main_corners[3][0], main_corners[2][1] - main_corners[3][1])
 
+    print("1 " + str(c1_c2))
+    print("2 " + str(c2_c3))
+    print("3 " + str(c3_c4))
+
+    # y / 9
+    # x / 6
     # for dx in range(x):
     #     for dy in range(y):
 
@@ -30,7 +37,8 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 #read photos from folder
-images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_images\\*.jpg')
+#images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_images\\*.jpg')
+images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\test_images\\*.jpg')
 
 counter = 0
 for fname in images:
@@ -41,29 +49,30 @@ for fname in images:
     ret, corners = cv.findChessboardCorners(gray, (y,x), None)
     # If found, add object points, image points (after refining them)
     cv.namedWindow("resize", cv.WINDOW_NORMAL)
-    cv.resizeWindow("resize", 1000, 1000)
+    cv.resizeWindow("resize", 800, 800)
 
     #if ret == false:
 
-    # cv.imshow('resize', img)
-    # cv.setMouseCallback('resize', click_event)
-    # while len(corners) < 4:
-    #     cv.waitKey(10)
+    cv.imshow('resize', img)
+    cv.setMouseCallback('resize', click_event)
+    while len(main_corners) < 4:
+        cv.waitKey(10)
+    make_grid()
+    main_corners.clear()
+    #print(corners)
 
-    print(corners)
-
-    print("found " + str(counter-1))
+    #print("found " + str(counter-1))
     objpoints.append(objp)
-    corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
-    imgpoints.append(corners)
+    #corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+    #imgpoints.append(corners)
     # Draw and display the corners
 
-    cv.drawChessboardCorners(img, (y,x), corners, ret)
-    cv.imshow('resize', img)
+    #cv.drawChessboardCorners(img, (y,x), corners, ret)
+    #cv.imshow('resize', img)
 
     
 
-    cv.waitKey(2500)
+    #cv.waitKey(2500)
 
 
 cv.destroyAllWindows()
