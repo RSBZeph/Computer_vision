@@ -4,14 +4,24 @@ import glob
 
 x = 6
 y = 9
-corners = []
+main_corners = []
 # termination criteria
 
 def click_event(event, x, y, flags, params):
     if event == cv.EVENT_LBUTTONDOWN:
-        corners.append((x, y))
+        main_corners.append((x, y))
+
+def make_grid():
+    corners_grid = []
+    c1_c2 = main_corners[0] - main_corners[1]
+    c2_c3 = main_corners[1] - main_corners[2]
+    c3_c4 = main_corners[2] - main_corners[3]
+
+    # for dx in range(x):
+    #     for dy in range(y):
+
 #test
-criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+criteria = (cv.TERM_CRITERIA_EPS, 30, 0.001)
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((x*y,3), np.float32)
 objp[:,:2] = np.mgrid[0:y,0:x].T.reshape(-1,2)
@@ -30,10 +40,11 @@ for fname in images:
     # Find the chess board corners
     ret, corners = cv.findChessboardCorners(gray, (y,x), None)
     # If found, add object points, image points (after refining them)
+    cv.namedWindow("resize", cv.WINDOW_NORMAL)
+    cv.resizeWindow("resize", 1000, 1000)
 
     #if ret == false:
-    # cv.namedWindow("resize", cv.WINDOW_NORMAL)
-    # cv.resizeWindow("resize", 1000, 1000)
+
     # cv.imshow('resize', img)
     # cv.setMouseCallback('resize', click_event)
     # while len(corners) < 4:
@@ -43,11 +54,11 @@ for fname in images:
 
     print("found " + str(counter-1))
     objpoints.append(objp)
-    #corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+    corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
     imgpoints.append(corners)
     # Draw and display the corners
 
-    cv.drawChessboardCorners(img, (y,x), corners, None)#ret)
+    cv.drawChessboardCorners(img, (y,x), corners, ret)
     cv.imshow('resize', img)
 
     
