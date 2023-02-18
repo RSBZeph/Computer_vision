@@ -9,6 +9,7 @@ x = 6
 y = 9
 win_size = 500
 main_corners = []
+live = False
 # termination criteria
 
 def click_event(event, x, y, flags, params):
@@ -57,9 +58,9 @@ def draw_axis(img, corners, imgpts):
     corners = np.int32(corners).reshape(-1,2)
     corner = tuple(corners[0].ravel())
     imgpts = np.int32(imgpts).reshape(-1,2)
-    img = cv.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 10)
-    img = cv.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 10)
-    img = cv.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 10)
+    img = cv.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 8)
+    img = cv.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 8)
+    img = cv.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 8)
     return img
 
 def draw_cube(img, corners, imgpts):
@@ -82,13 +83,13 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 #read photos from folder
-images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\short_test\\*.jpg')
-drawimage = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\draw\\*.jpg')
-#images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
-#drawimage = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
+#images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\short_test\\*.jpg')
+#drawimage = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\draw\\*.jpg')
+images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\short_test\\*.jpg')
+drawimages = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
 
 counter = 0
-for fname in images:
+for fname in drawimages:
     counter += 1
     img = cv.imread(fname)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -119,7 +120,7 @@ for fname in images:
     cv.drawChessboardCorners(img, (y,x), corners2, ret)
     cv.imshow('resize', img)
 
-    cv.waitKey(500)
+    cv.waitKey(2000)
 
 #calibration
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
@@ -148,31 +149,60 @@ axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 #How the cube looks like
 cube = np.float32([[0,0,0], [0,2,0], [2,2,0], [2,0,0], [0,0,-2] ,[0,2,-2] ,[2,2,-2] ,[2,0,-2]])
 
-for fname in drawimage:
-    counter += 1
-    cv.namedWindow("img", cv.WINDOW_NORMAL)
-    cv.resizeWindow("img", win_size, win_size)
-    img = cv.imread(fname)
+if live == False:
+    for fname in drawimages:
+        counter += 1
+        cv.namedWindow("img", cv.WINDOW_NORMAL)
+        cv.resizeWindow("img", win_size, win_size)
+        img = cv.imread(fname)
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        # Find the chess board corners
+        ret, corners = cv.findChessboardCorners(gray, (y,x), None)
+        print(str(counter) + " " + str(ret))
+        # If found, add object points, image points (after refining them)
+        if ret == True:
+            corners2 = cv.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
+            # Find the rotation and translation vectors.
+            ret,rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
+            # project 3D points to image plane
+            imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
+            imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
 
-    cv.imshow('img',img)
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            img = draw_cube(img,corners2,imgpts)
+            img = draw_axis(img,corners2,imgpts2)
 
-    # Find the chess board corners
-    ret, corners = cv.findChessboardCorners(gray, (y,x), None)
-    print(str(counter) + " " + str(ret))
-    # If found, add object points, image points (after refining them)
-    if ret == True:
-        corners2 = cv.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
-        # Find the rotation and translation vectors.
-        ret,rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
-        # project 3D points to image plane
-        imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
-        imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
+            cv.imshow('img',img)
+            cv.waitKey(2000)
 
-        img = draw_cube(img,corners2,imgpts)
-        img = draw_axis(img,corners2,imgpts2)
+#webcam
+if live == True:
+    cap = cv.VideoCapture(0)
 
-        cv.imshow('img',img)
-        cv.waitKey(2000)
+    # Check if the webcam is opened correctly
+    if not cap.isOpened():
+        raise IOError("Cannot open webcam")
 
+    while True:
+        ret1, frame = cap.read()
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        ret, corners = cv.findChessboardCorners(gray, (y,x), None)
+        # If found, add object points, image points (after refining them)
+        if ret == True:
+            corners2 = cv.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
+            # Find the rotation and translation vectors.
+            ret,rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
+            # project 3D points to image plane
+            imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
+            imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
+
+            frame = draw_axis(frame,corners2,imgpts2)
+            frame = draw_cube(frame,corners2,imgpts)
+
+        cv.imshow('Input', frame)
+
+        c = cv.waitKey(1)
+        if c == 27:
+            break
+
+    cap.release()
 cv.destroyAllWindows()
