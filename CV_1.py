@@ -9,10 +9,14 @@ import numpy as np
 import cv2 as cv
 import glob
 
+#read photos from folder change the path directory to desired folder of pictures
+offline = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\run3\\*.jpg')
+online = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\run3\\*.jpg')
+
 x = 6
 y = 9
-win_sizeY = 720
-win_sizeX = 1280 
+win_sizeX = 1280
+win_sizeY = 720 
 main_corners = []
 live = False
 
@@ -31,15 +35,11 @@ def make_grid():
     c2_c1 = (main_corners[1][0] - main_corners[0][0], main_corners[1][1] - main_corners[0][1])
     c4_c3 = (main_corners[3][0] - main_corners[2][0], main_corners[3][1] - main_corners[2][1])
 
-    print("corner dif: " + str(c2_c1) + ", " + str(c4_c3))
-
     # how much the next grid point should be (so steps)
     step_x1 = c2_c1[0]/(x-1)
     step_y1 = c2_c1[1]/(x-1)
     step_x2 = c4_c3[0]/(x-1)
     step_y2 = c4_c3[1]/(x-1)
-
-    print("steps: (" + str(step_x1) + ", " + str(step_y1) + ") - (" + str(step_x2) + ", " + str(step_y2)+")")
 
     # top and bottom lists of grid points
     interp1 = []
@@ -52,7 +52,7 @@ def make_grid():
         interp_2y = main_corners[2][1] + dx * step_y2 
         interp1.append([interp_1x,interp_1y])
         interp2.append([interp_2x,interp_2y])
-        print("point top bottom: (" + str(interp_1x) + ", " + str(interp_1y) + ") - (" + str(interp_2x) + ", " + str(interp_2y)+")")
+
     # filling the points between the top and bottom layer and then putting then in result list
     for dx in range(x):
         for dy in range(y):
@@ -97,22 +97,17 @@ objp[:,:2] = np.mgrid[0:y,0:x].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
-#read photos from folder
-#images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\not_found\\*.jpg')
-#drawimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test\\*.jpg')
-#interpolationimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_interpolation\\*.jpg')
-images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\run1\\*.jpg')
-drawimages = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\test\\*.jpg')
+
 
 counter = 0
-for fname in images:
+for fname in offline:
     counter += 1
     img = cv.imread(fname)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
     # Find the chess board corners
     ret, corners = cv.findChessboardCorners(gray, (y,x), cv.CALIB_CB_FAST_CHECK)
-    #ret = True
+
     print(str(counter) + " " + str(ret))
     # make new resized window
     cv.namedWindow("resize", cv.WINDOW_NORMAL)
@@ -142,19 +137,13 @@ for fname in images:
 
 #calibration
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+#for saving the camera calibation values
 #np.savez("CameraParams", mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+#prints intrinsics matrix
 print(str(mtx))
-# undistortion
-#img = cv.imread('test1_first.jpg')
-#h,  w = img.shape[:2]
-#newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
-
-# print the camera intrinsics
-#print(str(newcameramtx))
-
-#dst = cv.undistort(img, mtx, dist, None, newcameramtx)
-
 cv.destroyAllWindows()
+
 
 # online fase
 # Load previously saved data
@@ -166,9 +155,9 @@ axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 #How the cube looks like
 cube = np.float32([[0,0,0], [0,2,0], [2,2,0], [2,0,0], [0,0,-2] ,[0,2,-2] ,[2,2,-2] ,[2,0,-2]])
 
-#live with webcam recording the cube
+#online phase without live camera
 if live == False:
-    for fname in drawimages:
+    for fname in online:
         counter += 1
         cv.namedWindow("img", cv.WINDOW_NORMAL)
         cv.resizeWindow("img", win_sizeX, win_sizeY)
@@ -191,7 +180,7 @@ if live == False:
             cv.imshow('img',img)
             cv.waitKey(0)
 
-# Use webcam
+# online phase with live camera
 if live == True:
     cap = cv.VideoCapture(0, cv.CAP_DSHOW)
     cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
@@ -200,7 +189,6 @@ if live == True:
     # Check if the webcam is opened correctly
     if not cap.isOpened():
         raise IOError("Cannot open webcam")
-
     # Create infinite loop to calculate corners on every frame
     while True:
         ret1, frame = cap.read()
