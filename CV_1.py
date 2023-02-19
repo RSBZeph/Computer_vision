@@ -7,7 +7,7 @@ import glob
 
 x = 6
 y = 9
-win_size = 500
+win_size = 1000
 main_corners = []
 # termination criteria
 
@@ -22,7 +22,6 @@ def make_grid():
     c2_c1 = (main_corners[1][0] - main_corners[0][0], main_corners[1][1] - main_corners[0][1])
     c4_c3 = (main_corners[3][0] - main_corners[2][0], main_corners[3][1] - main_corners[2][1])
 
-    print("corner 4 " + str(main_corners[3]))
 
     step_x1 = c2_c1[0]/(x-1)
     step_y1 = c2_c1[1]/(x-1)
@@ -39,17 +38,20 @@ def make_grid():
         interp1.append([interp_1x,interp_1y])
         interp2.append([interp_2x,interp_2y])
 
-    print("inter 1 " + str(interp1))
-    print("inter 2 " + str(interp2))
     for dx in range(x):
         for dy in range(y):
-            step_y3 = (interp2[dx][1] - interp1[dx][1])/(y-1)
             step_x3 = (interp2[dx][0] - interp1[dx][0])/(y-1)
+            step_y3 = (interp2[dx][1] - interp1[dx][1])/(y-1)
+            #print(str(step_x3)+ "  " + str(step_y3))
+            print(str(step_y3))
+
             result_x = interp1[dx][0] + dy * step_x3
             result_y = interp1[dx][1] + dy * step_y3
+            print(str(result_y))
+
             result = [result_x,result_y]
             corners_grid.append(result)
-    print(corners_grid)
+    #print(corners_grid)
     
     return corners_grid
 
@@ -83,24 +85,25 @@ imgpoints = [] # 2d points in image plane.
 
 #read photos from folder
 images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\short_test\\*.jpg')
-drawimage = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\draw\\*.jpg')
+drawimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\draw\\*.jpg')
+interpolationimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_interpolation\\*.jpg')
 #images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
 #drawimage = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
 
 counter = 0
-for fname in images:
+for fname in drawimages:
     counter += 1
     img = cv.imread(fname)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
     # Find the chess board corners
     ret, corners = cv.findChessboardCorners(gray, (y,x), cv.CALIB_CB_FAST_CHECK)
+    ret = True
     print(str(counter) + " " + str(ret))
     # If found, add object points, image points (after refining them)
     cv.namedWindow("resize", cv.WINDOW_NORMAL)
     cv.resizeWindow("resize", win_size, win_size)
     if ret == False:
-
         cv.imshow('resize', img)
         cv.setMouseCallback('resize', click_event)
         while len(main_corners) < 4:
@@ -108,7 +111,7 @@ for fname in images:
         corners = make_grid()
         main_corners.clear()
         corners = np.float32(corners)
-        print(corners)
+
 
     #print("found " + str(counter-1))
     objpoints.append(objp)
@@ -119,7 +122,7 @@ for fname in images:
     cv.drawChessboardCorners(img, (y,x), corners2, ret)
     cv.imshow('resize', img)
 
-    cv.waitKey(500)
+    cv.waitKey(0)
 
 #calibration
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
@@ -128,6 +131,7 @@ np.savez("CameraParams", mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
 img = cv.imread('test1_first.jpg')
 h,  w = img.shape[:2]
 newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+print(str(newcameramtx))
 
 dst = cv.undistort(img, mtx, dist, None, newcameramtx)
 
@@ -148,7 +152,7 @@ axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 #How the cube looks like
 cube = np.float32([[0,0,0], [0,2,0], [2,2,0], [2,0,0], [0,0,-2] ,[0,2,-2] ,[2,2,-2] ,[2,0,-2]])
 
-for fname in drawimage:
+for fname in drawimages:
     counter += 1
     cv.namedWindow("img", cv.WINDOW_NORMAL)
     cv.resizeWindow("img", win_size, win_size)
