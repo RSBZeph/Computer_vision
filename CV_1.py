@@ -1,5 +1,9 @@
 #assignment 1 computer vision
 #By Romeo Zeph (6286372), Yoran den Heijer (6242057)
+#Sites used:
+#   - https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+#   - https://docs.opencv.org/4.x/d7/d53/tutorial_py_pose.html
+#   - https://www.geeksforgeeks.org/displaying-the-coordinates-of-the-points-clicked-on-the-image-using-python-opencv/
 
 import numpy as np
 import cv2 as cv
@@ -7,30 +11,33 @@ import glob
 
 x = 6
 y = 9
-win_size = 1000
+win_size = 800
 main_corners = []
 live = False
-# termination criteria
 
+# function called when there is a click on the screen
 def click_event(event, x, y, flags, params):
+    #saves on of the corners when clicking left
     if event == cv.EVENT_LBUTTONDOWN:
         main_corners.append((x, y))
         print((x,y))
 
+# interpolation for when corners not automatically found
 def make_grid():
+    # resulting grid
     corners_grid = []
-
+    # diffence of the top two corners and of the bottom two corners
     c2_c1 = (main_corners[1][0] - main_corners[0][0], main_corners[1][1] - main_corners[0][1])
     c4_c3 = (main_corners[3][0] - main_corners[2][0], main_corners[3][1] - main_corners[2][1])
-
-
+    # how much the next grid point should be (so steps)
     step_x1 = c2_c1[0]/(x-1)
     step_y1 = c2_c1[1]/(x-1)
     step_x2 = c4_c3[0]/(x-1)
     step_y2 = c4_c3[1]/(x-1)
-
+    # top and bottom lists of grid points
     interp1 = []
     interp2 = []
+    # filling those lists
     for dx in range(x):
         interp_1x = main_corners[0][0] + dx * step_x1
         interp_1y = main_corners[0][1] + step_y1    
@@ -38,24 +45,21 @@ def make_grid():
         interp_2y = main_corners[2][1] + step_y2 
         interp1.append([interp_1x,interp_1y])
         interp2.append([interp_2x,interp_2y])
-
+    # filling the points between the top and bottom layer and then putting then in result list
     for dx in range(x):
         for dy in range(y):
             step_x3 = (interp2[dx][0] - interp1[dx][0])/(y-1)
             step_y3 = (interp2[dx][1] - interp1[dx][1])/(y-1)
-            #print(str(step_x3)+ "  " + str(step_y3))
-            print(str(step_y3))
 
             result_x = interp1[dx][0] + dy * step_x3
             result_y = interp1[dx][1] + dy * step_y3
-            print(str(result_y))
 
             result = [result_x,result_y]
             corners_grid.append(result)
-    #print(corners_grid)
     
     return corners_grid
 
+# funtion for drawing axis in online fase
 def draw_axis(img, corners, imgpts):
     corners = np.int32(corners).reshape(-1,2)
     corner = tuple(corners[0].ravel())
@@ -65,6 +69,7 @@ def draw_axis(img, corners, imgpts):
     img = cv.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 8)
     return img
 
+# funtion for drawing cube in online fase
 def draw_cube(img, corners, imgpts):
     imgpts = np.int32(imgpts).reshape(-1,2)
     # draw pillars of cube
@@ -101,9 +106,10 @@ for fname in drawimages:
     ret, corners = cv.findChessboardCorners(gray, (y,x), cv.CALIB_CB_FAST_CHECK)
     ret = True
     print(str(counter) + " " + str(ret))
-    # If found, add object points, image points (after refining them)
+    # make new resized window
     cv.namedWindow("resize", cv.WINDOW_NORMAL)
     cv.resizeWindow("resize", win_size, win_size)
+    # if the corners are not automatically found then manually select corners
     if ret == False:
         cv.imshow('resize', img)
         cv.setMouseCallback('resize', click_event)
@@ -113,8 +119,7 @@ for fname in drawimages:
         main_corners.clear()
         corners = np.float32(corners)
 
-
-    #print("found " + str(counter-1))
+    # add objects to list and apply function to make the corners more accurate
     objpoints.append(objp)
     corners2 = cv.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
     imgpoints.append(corners2)
@@ -123,7 +128,7 @@ for fname in drawimages:
     cv.drawChessboardCorners(img, (y,x), corners2, ret)
     cv.imshow('resize', img)
 
-    cv.waitKey(0)
+    cv.waitKey(1000)
 
 #calibration
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
@@ -132,6 +137,8 @@ np.savez("CameraParams", mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
 img = cv.imread('test1_first.jpg')
 h,  w = img.shape[:2]
 newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+
+# print the camera intrinsics
 print(str(newcameramtx))
 
 dst = cv.undistort(img, mtx, dist, None, newcameramtx)
@@ -153,6 +160,7 @@ axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 #How the cube looks like
 cube = np.float32([[0,0,0], [0,2,0], [2,2,0], [2,0,0], [0,0,-2] ,[0,2,-2] ,[2,2,-2] ,[2,0,-2]])
 
+#live with webcam recording the cube
 if live == False:
     for fname in drawimages:
         counter += 1
@@ -171,7 +179,7 @@ if live == False:
             # project 3D points to image plane
             imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
             imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
-
+            # draw axis and cube on the picture
             img = draw_cube(img,corners2,imgpts)
             img = draw_axis(img,corners2,imgpts2)
 
@@ -198,7 +206,7 @@ if live == True:
             # project 3D points to image plane
             imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
             imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
-
+            # draw axis and cube on the picture
             frame = draw_axis(frame,corners2,imgpts2)
             frame = draw_cube(frame,corners2,imgpts)
 
