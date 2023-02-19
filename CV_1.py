@@ -98,11 +98,11 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 #read photos from folder
-images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\not_found\\*.jpg')
-draw = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test\\*.jpg')
+#images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\not_found\\*.jpg')
+#drawimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test\\*.jpg')
 #interpolationimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_interpolation\\*.jpg')
-#images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\run1\\*.jpg')
-#drawimages = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\test\\*.jpg')
+images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\run1\\*.jpg')
+drawimages = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\test\\*.jpg')
 
 counter = 0
 for fname in images:
@@ -156,7 +156,6 @@ print(str(mtx))
 
 cv.destroyAllWindows()
 
-
 # online fase
 # Load previously saved data
 #with np.load('CameraParams.npz') as X:
@@ -192,10 +191,9 @@ if live == False:
             cv.imshow('img',img)
             cv.waitKey(0)
 
-#webcam
+# Use webcam
 if live == True:
     cap = cv.VideoCapture(0, cv.CAP_DSHOW)
-    #cap.set(cv.CAP_PROP_BUFFERSIZE, 3)
     cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -203,6 +201,7 @@ if live == True:
     if not cap.isOpened():
         raise IOError("Cannot open webcam")
 
+    # Create infinite loop to calculate corners on every frame
     while True:
         ret1, frame = cap.read()
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
@@ -215,12 +214,12 @@ if live == True:
             # project 3D points to image plane
             imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
             imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
-            # draw axis and cube on the picture
+            # draw axis and cube on each frame
             frame = draw_axis(frame,corners2,imgpts2)
             frame = draw_cube(frame,corners2,imgpts)
 
         cv.imshow('Input', frame)
-
+        # press 'esc' key to close webcam window
         c = cv.waitKey(1)
         if c == 27:
             break
