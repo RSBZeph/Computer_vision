@@ -11,8 +11,8 @@ import glob
 
 x = 6
 y = 9
-win_sizeY = 1280
-win_sizeX = 720 
+win_sizeY = 720
+win_sizeX = 1280 
 main_corners = []
 live = False
 
@@ -99,34 +99,34 @@ imgpoints = [] # 2d points in image plane.
 
 #read photos from folder
 images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\not_found\\*.jpg')
-testimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test\\*.jpg')
-interpolationimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_interpolation\\*.jpg')
+draw = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test\\*.jpg')
+#interpolationimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_interpolation\\*.jpg')
 #images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\run1\\*.jpg')
 #drawimages = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\test\\*.jpg')
 
 counter = 0
-for fname in testimages:
+for fname in images:
     counter += 1
     img = cv.imread(fname)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
     # Find the chess board corners
-    #ret, corners = cv.findChessboardCorners(gray, (y,x), cv.CALIB_CB_FAST_CHECK)
-    ret = True
+    ret, corners = cv.findChessboardCorners(gray, (y,x), cv.CALIB_CB_FAST_CHECK)
+    #ret = True
     print(str(counter) + " " + str(ret))
     # make new resized window
     cv.namedWindow("resize", cv.WINDOW_NORMAL)
     cv.resizeWindow("resize", win_sizeX, win_sizeY)
     # if the corners are not automatically found then manually select corners
-    #if ret == False:
-    cv.imshow('resize', img)
-    cv.setMouseCallback('resize', click_event)
-    while len(main_corners) < 4:
-        cv.waitKey(10)
-    corners = make_grid()
-    main_corners.clear()
-    corners = np.float32(corners)
-    ret = True
+    if ret == False:
+        cv.imshow('resize', img)
+        cv.setMouseCallback('resize', click_event)
+        while len(main_corners) < 4:
+            cv.waitKey(10)
+        corners = make_grid()
+        main_corners.clear()
+        corners = np.float32(corners)
+        ret = True
 
     # add objects to list and apply function to make the corners more accurate
     objpoints.append(objp)
@@ -169,7 +169,7 @@ cube = np.float32([[0,0,0], [0,2,0], [2,2,0], [2,0,0], [0,0,-2] ,[0,2,-2] ,[2,2,
 
 #live with webcam recording the cube
 if live == False:
-    for fname in testimages:
+    for fname in drawimages:
         counter += 1
         cv.namedWindow("img", cv.WINDOW_NORMAL)
         cv.resizeWindow("img", win_sizeX, win_sizeY)
