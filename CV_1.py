@@ -143,6 +143,9 @@ cv.destroyAllWindows()
 
 
 # online fase
+# Load previously saved data
+with np.load('CameraParams.npz') as X:
+    mtx, dist, _, _ = [X[i] for i in ('mtx','dist','rvecs','tvecs')]
 
 #How axis look like
 axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
@@ -176,7 +179,9 @@ if live == False:
 
 #webcam
 if live == True:
-    cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(0, cv.CAP_DSHOW) # this is the magic!
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
 
     # Check if the webcam is opened correctly
     if not cap.isOpened():
