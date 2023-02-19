@@ -85,18 +85,11 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 #read photos from folder
-<<<<<<< HEAD
 images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\short_test\\*.jpg')
 drawimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\draw\\*.jpg')
 interpolationimages = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\test_interpolation\\*.jpg')
 #images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
 #drawimage = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
-=======
-#images = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\short_test\\*.jpg')
-#drawimage = glob.glob('C:\\Users\\rsbze\\Desktop\\Repos\\Uni\\Computer_vision\\draw\\*.jpg')
-images = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\short_test\\*.jpg')
-drawimages = glob.glob('C:\\Users\\yoran\\Documents\\UU\\GMT\\Jaar1\\P3\\Computer_vision\\ComputerVisionP1\\draw\\*.jpg')
->>>>>>> origin/main
 
 counter = 0
 for fname in drawimages:
@@ -130,11 +123,7 @@ for fname in drawimages:
     cv.drawChessboardCorners(img, (y,x), corners2, ret)
     cv.imshow('resize', img)
 
-<<<<<<< HEAD
     cv.waitKey(0)
-=======
-    cv.waitKey(2000)
->>>>>>> origin/main
 
 #calibration
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
@@ -164,13 +153,6 @@ axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 #How the cube looks like
 cube = np.float32([[0,0,0], [0,2,0], [2,2,0], [2,0,0], [0,0,-2] ,[0,2,-2] ,[2,2,-2] ,[2,0,-2]])
 
-<<<<<<< HEAD
-for fname in drawimages:
-    counter += 1
-    cv.namedWindow("img", cv.WINDOW_NORMAL)
-    cv.resizeWindow("img", win_size, win_size)
-    img = cv.imread(fname)
-=======
 if live == False:
     for fname in drawimages:
         counter += 1
@@ -189,7 +171,6 @@ if live == False:
             # project 3D points to image plane
             imgpts, jac2 = cv.projectPoints(cube, rvecs, tvecs, mtx, dist)
             imgpts2, jac = cv.projectPoints(axis, rvecs, tvecs, mtx, dist)
->>>>>>> origin/main
 
             img = draw_cube(img,corners2,imgpts)
             img = draw_axis(img,corners2,imgpts2)
